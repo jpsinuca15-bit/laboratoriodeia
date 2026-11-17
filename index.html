@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080b14">
+
+    <title>TechFlow AI LAB | Funcionários Virtuais</title>
+
+    <meta name="description" content="Conheça os funcionários virtuais da TechFlow AI. Experimente atendimento, gestão, vendas e automação inteligente.">
+
+    <link rel="stylesheet" href="style.css">
+
+    <script type="module" src="script.js"></script>
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- SIDEBAR -->
+
+        <aside class="sidebar" id="sidebar">
+
+            <div class="brand">
+                <div class="brand-icon">T</div>
+
+                <div>
+                    <h2>TECHFLOW<span>AI</span></h2>
+                    <small>INTELLIGENCE LAB</small>
+                </div>
+            </div>
+
+            <div class="sidebar-label">PLATAFORMA</div>
+
+            <nav class="navigation">
+
+                <button class="nav-item active" data-page="dashboard">
+                    <span>▦</span> Dashboard
+                </button>
+
+                <button class="nav-item" data-page="employees">
+                    <span>♙</span> Funcionários IA
+                </button>
+
+                <button class="nav-item" data-page="chat">
+                    <span>◉</span> Central de atendimento
+                </button>
+
+                <button class="nav-item" data-page="crm">
+                    <span>▤</span> CRM e oportunidades
+                </button>
+
+                <button class="nav-item" data-page="automation">
+                    <span>⌘</span> Automações
+                </button>
+
+            </nav>
+
+            <div class="sidebar-bottom">
+
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    Sistema demonstrativo online
+                </div>
+
+                <a href="../index.html" class="back-site">
+                    ← Voltar para TechFlow
+                </a>
+
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN -->
+
+        <main class="main-content">
+
+            <header class="topbar">
+
+                <button class="mobile-menu" id="mobileMenu">
+                    ☰
+                </button>
+
+                <div>
+                    <div class="breadcrumb">TECHFLOW / LABORATÓRIO</div>
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+
+                <div class="topbar-right">
+
+                    <div class="demo-badge">
+                        <span></span>
+                        DEMONSTRAÇÃO
+                    </div>
+
+                    <div class="user-avatar">TF</div>
+
+                </div>
+
+            </header>
+
+
+            <!-- DASHBOARD -->
+
+            <section class="page-section active" id="dashboardPage">
+
+                <div class="welcome-banner">
+
+                    <div>
+                        <span class="eyebrow">BEM-VINDO AO FUTURO</span>
+
+                        <h2>
+                            Sua empresa.
+                            <span>Sua equipe de IA.</span>
+                        </h2>
+
+                        <p>
+                            Conheça uma nova maneira de administrar,
+                            atender e desenvolver negócios com
+                            funcionários virtuais inteligentes.
+                        </p>
+
+                        <button class="primary-button" data-go="employees">
+                            Conhecer funcionários →
+                        </button>
+                    </div>
+
+                    <div class="welcome-decoration">AI</div>
+
+                </div>
+
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Visão geral</h2>
+                        <p>Indicadores desta demonstração.</p>
+                    </div>
+                </div>
+
+
+                <div class="stats-grid">
+
+                    <article class="stat-card">
+                        <span>Funcionários virtuais</span>
+                        <strong id="totalEmployees">5</strong>
+                        <small>Equipe TechFlow</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <span>Conversas realizadas</span>
+                        <strong id="totalConversations">0</strong>
+                        <small>Simulações neste navegador</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <span>Leads identificados</span>
+                        <strong id="totalLeads">0</strong>
+                        <small>Oportunidades registradas</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <span>Departamentos</span>
+                        <strong>5</strong>
+                        <small>Operação integrada</small>
+                    </article>
+
+                </div>
+
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Conheça nossa equipe</h2>
+                        <p>Selecione um funcionário para iniciar uma conversa.</p>
+                    </div>
+                </div>
+
+
+                <div class="employee-grid" id="dashboardEmployees"></div>
+
+
+                <div class="bottom-cta">
+
+                    <div>
+                        <h3>Quer uma equipe assim na sua empresa?</h3>
+                        <p>Descubra como a TechFlow pode automatizar seu negócio.</p>
+                    </div>
+
+                    <a href="../index.html#ia" class="primary-button">
+                        Conhecer soluções
+                    </a>
+
+                </div>
+
+            </section>
+
+
+            <!-- FUNCIONÁRIOS -->
+
+            <section class="page-section" id="employeesPage">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Nossa equipe virtual</h2>
+                        <p>Funcionários especializados em diferentes áreas empresariais.</p>
+                    </div>
+                </div>
+
+                <div class="employee-grid" id="allEmployees"></div>
+
+            </section>
+
+
+            <!-- CHAT -->
+
+            <section class="page-section" id="chatPage">
+
+                <div class="chat-layout">
+
+                    <aside class="chat-list-panel">
+
+                        <h3>Funcionários</h3>
+
+                        <div id="chatEmployeeList"></div>
+
+                    </aside>
+
+
+                    <div class="chat-panel">
+
+                        <div class="chat-header" id="chatHeader">
+                            <div>
+                                <h3>Central de atendimento</h3>
+                                <p>Selecione um funcionário para conversar.</p>
+                            </div>
+                        </div>
+
+                        <div class="chat-messages" id="chatMessages">
+
+                            <div class="empty-chat">
+                                <div>✦</div>
+                                <h3>Experimente nossa equipe de IA</h3>
+                                <p>Escolha um funcionário e comece uma conversa.</p>
+                            </div>
+
+                        </div>
+
+                        <form class="chat-input-area" id="chatForm">
+
+                            <input
+                                type="text"
+                                id="chatInput"
+                                placeholder="Selecione um funcionário..."
+                                autocomplete="off"
+                                disabled
+                            >
+
+                            <button type="submit" id="sendMessage" disabled>
+                                Enviar ↑
+                            </button>
+
+                        </form>
+
+                        <small class="chat-disclaimer">
+                            Demonstração interativa. Respostas geradas por regras programadas.
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- CRM -->
+
+            <section class="page-section" id="crmPage">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>CRM comercial</h2>
+                        <p>Acompanhe as oportunidades identificadas pelos funcionários virtuais.</p>
+                    </div>
+                </div>
+
+                <div class="crm-summary" id="crmSummary"></div>
+
+                <div class="crm-board">
+
+                    <div class="crm-column">
+                        <h3>Novos leads</h3>
+                        <div id="newLeads"></div>
+                    </div>
+
+                    <div class="crm-column">
+                        <h3>Em atendimento</h3>
+                        <div id="activeLeads"></div>
+                    </div>
+
+                    <div class="crm-column">
+                        <h3>Qualificados</h3>
+                        <div id="qualifiedLeads"></div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- AUTOMAÇÕES -->
+
+            <section class="page-section" id="automationPage">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Central de automações</h2>
+                        <p>Visualize como os funcionários processam as solicitações.</p>
+                    </div>
+                </div>
+
+                <div class="automation-flow" id="automationFlow"></div>
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Histórico de atividades</h2>
+                        <p>Eventos gerados durante a demonstração.</p>
+                    </div>
+                </div>
+
+                <div class="activity-list" id="activityList"></div>
+
+            </section>
+
+
+            <footer class="footer">
+                <span>TECHFLOW AI LAB © 2026</span>
+                <span>Powered by TechFlow AI</span>
+            </footer>
+
+        </main>
+
+    </div>
+
+</body>
+</html>
