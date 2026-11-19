@@ -1,240 +1,148 @@
+// TechFlow AI LAB - Motor de conversa (corrigido)
 import { getEmployee } from "./employees.js";
 import {
-  findIntent,
-  searchServices,
-  searchFAQ,
-  getQuickReplies
+  findIntent, searchServices, searchFAQ, getQuickReplies,
+  getPriceList, normalizeText, hasKeyword, companyInfo,
 } from "./knowledge-base.js";
 
-const serviceRouting = {
-  websites: "technology",
-  systems: "technology",
-  automation: "technology",
-  "ai-agents": "technology",
-  marketing: "marketing"
-};
+const STAGES = { OPEN: "open", NAME: "collect_name", COMPANY: "collect_company", DONE: "done" };
 
-// 🎯 DICIONÁRIO DE NICHOS INTELIGENTES (Sem API externa)
-const BUSINESS_NICHES = [
-  { keys: ['deposito', 'material de construção', 'construcao', 'ferragem', 'obra'], name: 'Material de Construção / Depósito', pain: 'controle de estoque, entrega de pedidos e atendimento rápido no balcão/WhatsApp' },
-  { keys: ['farmacia', 'drogaria', 'remedio', 'medicamento'], name: 'Farmácia / Drogaria', pain: 'gestão de entregas (delivery), convênios e estoque de medicamentos' },
-  { keys: ['posto', 'combustivel', 'gasolina', 'conveniencia'], name: 'Posto de Combustíveis', pain: 'fidelização de clientes, automação de pista e controle de caixa da conveniência' },
-  { keys: ['supermercado', 'mercado', 'mercearia', 'atacarejo'], name: 'Supermercado / Comércio de Alimentos', pain: 'ofertas diárias no WhatsApp, controle de validade e pedidos em escala' },
-  { keys: ['advocacia', 'advogado', 'escritorio juridico', 'direito'], name: 'Escritório de Advocacia', pain: 'triagem de clientes, gestão de prazos e acompanhamento de processos' },
-  { keys: ['odontologia', 'dentista', 'clinica', 'medico', 'saude'], name: 'Clínica / Consultório de Saúde', pain: 'redução de faltas com confirmação automática de consultas e agendamento' },
-  { keys: ['fabrica', 'blocos', 'pre-moldados', 'industria', 'producao'], name: 'Indústria / Fábrica de Pré-moldados', pain: 'controle de pedidos sob medida, logística de entrega pesada e escala comercial' }
+const NICHES = [
+  { keys: ["deposito", "material de construcao", "ferragem", "construtora"], name: "material de construção", pain: "controle de estoque e atendimento rápido no WhatsApp" },
+  { keys: ["farmacia", "drogaria", "remedio"], name: "farmácia", pain: "entregas, estoque e dúvidas dos clientes" },
+  { keys: ["posto", "combustivel", "gasolina"], name: "posto de combustíveis", pain: "fidelização de clientes e controle da conveniência" },
+  { keys: ["mercado", "supermercado", "mercearia", "atacarejo", "loja", "comercio"], name: "comércio", pain: "pedidos, promoções e atendimento fora do horário" },
+  { keys: ["advocacia", "advogado", "juridico", "escritorio"], name: "escritório jurídico", pain: "triagem de clientes e controle de prazos" },
+  { keys: ["clinica", "dentista", "odontologia", "medico", "consultorio"], name: "clínica", pain: "faltas em consultas e agendamentos" },
+  { keys: ["fabrica", "blocos", "industria", "pre moldado", "producao"], name: "indústria", pain: "controle de pedidos, produção e entregas" },
 ];
 
-const defaultSession = () => ({
-  employeeId: "manager",
-  stage: "consulting",
-  contextScore: 0,
-  detectedNiche: null,
-  lead: {
-    name: "",
-    company: "",
-    need: "",
-    niche: "",
-    source: "Laboratório TechFlow AI"
-  },
-  history: []
-});
+const ROUTING = {
+  websites: "technology", landing: "marketing", automation: "technology",
+  agents: "manager", marketing: "marketing", videos: "marketing", systems: "technology",
+};
+
+const nameOf = (id) => {
+  const e = getEmployee(id);
+  return e ? e.fullName : "nossa equipe";
+};
 
 export function createConversation(employeeId = "manager") {
-  const employee = getEmployee(employeeId);
+  const e = getEmployee(employeeId);
   return {
-    ...defaultSession(),
-    employeeId: employee ? employee.id : "manager"
+    employeeId: e ? e.id : "manager",
+    stage: STAGES.OPEN,
+    niche: null,
+    nicheAnswered: false,
+    firstNeed: "",
+    lead: { name: "", company: "", need: "", niche: "" },
+    history: [],
   };
-}
-
-function cleanMessage(message) {
-  return String(message || "").trim().slice(0, 1000);
 }
 
 function saveHistory(session, sender, message) {
-  session.history.push({
-    sender,
-    message,
-    timestamp: new Date().toISOString()
-  });
-  if (session.history.length > 50) {
-    session.history = session.history.slice(-50);
-  }
+  session.history.push({ sender, message, timestamp: new Date().toISOString() });
+  if (session.history.length > 60) session.history = session.history.slice(-60);
 }
 
-function getEmployeeName(employeeId) {
-  const employee = getEmployee(employeeId);
-  return employee ? employee.fullName : "nossa equipe";
-}
-
-function detectNicheInText(text) {
-  const lower = text.toLowerCase();
-  for (const niche of BUSINESS_NICHES) {
-    if (niche.keys.some(k => lower.includes(k))) {
-      return niche;
-    }
-  }
-  return null;
-}
-
-function makeResponse(session, text, options = {}) {
+function reply(session, text, extra = {}) {
+  saveHistory(session, "bot", text);
   return {
     text,
     employeeId: session.employeeId,
-    employeeName: getEmployeeName(session.employeeId),
+    employeeName: nameOf(session.employeeId),
     session,
-    quickReplies: options.quickReplies || getQuickReplies(),
-    transferred: options.transferred || false,
-    shouldCreateLead: options.shouldCreateLead || false,
+    quickReplies: extra.quickReplies || getQuickReplies(),
+    transferred: !!extra.transferred,
+    shouldCreateLead: !!extra.shouldCreateLead,
     lead: { ...session.lead },
-    matchedServices: options.matchedServices || []
+    matchedServices: extra.matchedServices || [],
   };
 }
 
-/**
- * Motor Consultivo com Inteligência de Nicho Integrada
- */
-function generateConsultativeResponse(text, session) {
-  const lower = text.toLowerCase();
-  
-  // Tenta detectar o nicho caso ainda não tenha sido mapeado
-  if (!session.detectedNiche) {
-    const foundNiche = detectNicheInText(text);
-    if (foundNiche) {
-      session.detectedNiche = foundNiche;
-      session.lead.niche = foundNiche.name;
-    }
-  }
+function detectNiche(text) {
+  const n = normalizeText(text);
+  return NICHES.find((niche) => niche.keys.some((k) => hasKeyword(n, k))) || null;
+}
 
-  if (session.stage === "consulting") {
-    session.contextScore++;
-
-    // Se identificou o nicho na primeira ou segunda mensagem, o agente dá uma aula de propriedade sobre o negócio do cara!
-    if (session.detectedNiche && session.contextScore <= 1) {
-      return makeResponse(
-        session,
-        `Excelente! Segmento de **${session.detectedNiche.name}** exige agilidade extrema. Na prática, sabemos que o maior gargalo costuma ser o *${session.detectedNiche.pain}*.\n\nPara desenharmos a solução perfeita aqui na TechFlow: hoje vocês já conseguem automatizar parte desse fluxo pelo WhatsApp ou ainda dependem de processos 100% manuais no balcão/telefone?`
-      );
-    }
-
-    if (session.contextScore === 2) {
-      return makeResponse(
-        session,
-        `Compreendido perfeitamente. Esse cenário é ideal para implementarmos um agente virtual de triagem conectado a um painel de gestão.\n\nPara eu dimensionar o volume de operação de vocês: qual é a média aproximada de atendimentos ou orçamentos diários que sua equipe lida hoje?`
-      );
-    }
-
-    session.stage = "collect_name";
-    return makeResponse(
-      session,
-      `Perfeito! O diagnóstico para o seu modelo de negócio está claríssimo. Temos tecnologias de automação que vão resolver exatamente esses pontos.\n\nPara formalizarmos a estratégia e gerar a proposta, como você se chama?`
-    );
-  }
-
-  if (session.stage === "collect_name") {
-    session.lead.name = text;
-    session.stage = "collect_company";
-    return makeResponse(
-      session,
-      `Muito prazer, ${text}! E qual é o nome da sua empresa/estabelecimento?`
-    );
-  }
-
-  if (session.stage === "collect_company") {
-    session.lead.company = text;
-    session.stage = "complete";
-
-    session.employeeId = "sales";
-    const salesEmp = getEmployee("sales");
-
-    return makeResponse(
-      session,
-      `Tudo registrado com sucesso, ${session.lead.name}!\n\nRepassei o escopo completo para o **${salesEmp ? salesEmp.fullName : 'Gabriel Oliveira'}** (Consultor Comercial). Ele já sabe que o foco é otimizar a operação da *${text}* (${session.lead.niche || 'Comércio/Serviços'}).\n\nSua oportunidade foi gravada no CRM da TechFlow. Na versão final com backend, esses dados já estariam despachados no painel gerencial! 🚀`,
-      {
-        transferred: true,
-        shouldCreateLead: true
-      }
-    );
-  }
-
-  return makeResponse(
-    session,
-    `Estou à disposição para detalhar qualquer outra solução ou calcular prazos de implantação para a sua empresa, ${session.lead.name || 'parceiro'}!`
-  );
+function asksPrice(text) {
+  return hasKeyword(normalizeText(text), "quanto custa") || /\b(preco|precos|valor|valores)\b/.test(normalizeText(text));
 }
 
 export function processMessage(message, currentSession = null) {
-  const text = cleanMessage(message);
   const session = currentSession || createConversation();
+  const text = String(message || "").trim().slice(0, 500);
 
-  if (!text) {
-    return makeResponse(session, "Pode me explicar um pouco melhor para que eu possa te ajudar?");
-  }
-
+  if (!text) return reply(session, "Pode me contar um pouco mais sobre o que você precisa?");
   saveHistory(session, "user", text);
 
-  if (session.stage !== "idle" && session.stage !== "complete") {
-    const consultativeRes = generateConsultativeResponse(text, session);
-    if (consultativeRes) {
-      saveHistory(session, "bot", consultativeRes.text);
-      return consultativeRes;
-    }
+  // Coleta de dados para o lead (nome e empresa)
+  if (session.stage === STAGES.NAME) {
+    session.lead.name = text.slice(0, 80);
+    session.stage = STAGES.COMPANY;
+    return reply(session, `Prazer, ${session.lead.name}! Qual é o nome da sua empresa?`);
   }
-
-  const matchedServices = searchServices(text);
-  if (matchedServices.length > 0) {
-    const destination = serviceRouting[matchedServices[0].id] || "sales";
-    if (destination !== session.employeeId) session.employeeId = destination;
-
-    const response = makeResponse(
+  if (session.stage === STAGES.COMPANY) {
+    session.lead.company = text.slice(0, 80);
+    session.lead.need = session.firstNeed || "Interesse geral";
+    session.lead.niche = session.niche ? session.niche.name : "";
+    session.stage = STAGES.DONE;
+    session.employeeId = "sales";
+    return reply(
       session,
-      `Analisando a sua necessidade, encontrei a solução exata:\n\n${matchedServices.map(s => `• **${s.name}**: ${s.description} (${s.price})`).join("\n")}\n\nGostaria de entender como aplicar isso na prática no seu segmento?`,
-      { matchedServices }
+      `Tudo certo, ${session.lead.name}! Registrei o seu interesse para a ${session.lead.company}. Nosso consultor comercial entra em contato em até 2 horas no horário comercial.`,
+      { transferred: true, shouldCreateLead: true }
     );
-    saveHistory(session, "bot", response.text);
-    return response;
+  }
+  if (session.stage === STAGES.DONE) {
+    return reply(session, "Seu contato já está registrado com a equipe comercial. Quer tirar mais alguma dúvida enquanto isso?");
   }
 
-  const matchedFAQ = searchFAQ(text);
-  if (matchedFAQ.length > 0) {
-    const response = makeResponse(session, matchedFAQ[0].answer);
-    saveHistory(session, "bot", response.text);
-    return response;
-  }
+  // Fluxo aberto: guarda a primeira necessidade e identifica o segmento
+  if (!session.firstNeed && text.length > 3) session.firstNeed = text.slice(0, 120);
+  const niche = detectNiche(text);
+  if (niche) session.niche = niche;
 
   const intent = findIntent(text);
-  if (intent && intent.id === "quote") {
-    session.stage = "collect_name";
-    const response = makeResponse(session, "Excelente iniciativa! Para começarmos, qual é o seu nome?");
-    saveHistory(session, "bot", response.text);
-    return response;
+  if (intent && (intent.id === "quote" || intent.id === "human")) {
+    session.stage = STAGES.NAME;
+    return reply(session, intent.response);
   }
 
-  const employee = getEmployee(session.employeeId);
-  const fallback = employee
-    ? `Como ${employee.role} da TechFlow AI, achei muito interessante. Para sermos bem assertivos no seu nicho, me conte: qual é o principal objetivo que você quer alcançar nos próximos meses com automação?`
-    : "Compreendi. Poderia detalhar um pouco mais para direcionarmos a melhor solução?";
+  if (asksPrice(text)) {
+    return reply(session, `Aqui estão os valores de referência:\n${getPriceList()}\n\nQuer que eu registre seu interesse para um consultor montar a proposta exata?`);
+  }
 
-  const response = makeResponse(session, fallback);
-  saveHistory(session, "bot", response.text);
-  return response;
+  const services = searchServices(text);
+  if (services.length) {
+    session.employeeId = ROUTING[services[0].id] || session.employeeId;
+    const list = services.slice(0, 3).map((s) => `• ${s.name}: ${s.description} ${s.price}`).join("\n");
+    const intro = niche && !session.nicheAnswered
+      ? `Entendi, ${niche.name}. Nesse segmento, o maior gargalo costuma ser ${niche.pain}.\n\n`
+      : "";
+    session.nicheAnswered = session.nicheAnswered || !!niche;
+    return reply(session, `${intro}${list}\n\nQuer que eu registre seu interesse para montar uma proposta?`, { matchedServices: services });
+  }
+
+  const faqs = searchFAQ(text);
+  if (faqs.length) return reply(session, faqs[0].answer);
+
+  if (niche) {
+    session.nicheAnswered = true;
+    return reply(session, `Entendi, ${niche.name}. Nesse segmento, o maior gargalo costuma ser ${niche.pain}. O que você gostaria de resolver primeiro?`);
+  }
+
+  if (intent && intent.response) return reply(session, intent.response);
+
+  return reply(session, "Posso te ajudar com sites, sistemas, automação com IA, funcionários de IA ou marketing digital. Qual deles faz mais sentido para você?");
 }
 
 export function switchEmployee(session, employeeId) {
   const employee = getEmployee(employeeId);
   if (!employee) return { success: false, session, message: "Funcionário não encontrado." };
-
   session.employeeId = employee.id;
-  session.stage = "consulting";
-  session.contextScore = 0;
-
-  return {
-    success: true,
-    session,
-    message: `Agora você está conversando com ${employee.fullName}, ${employee.role}.`,
-    greeting: employee.greeting
-  };
+  session.stage = STAGES.OPEN;
+  return { success: true, session, message: `Agora você está conversando com ${employee.fullName}.`, greeting: employee.greeting };
 }
 
 export function getConversationHistory(session) {

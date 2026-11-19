@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#080b14">
 
-    <title>TechFlow AI LAB | Funcionários Virtuais</title>
+    <title>TechFlow IA LAB | Funcionários Virtuais</title>
 
-    <meta name="description" content="Conheça os funcionários virtuais da TechFlow AI. Experimente atendimento, gestão, vendas e automação inteligente.">
+    <meta name="description" content="Conheça os funcionários virtuais da TechFlow. Experimente atendimento, gestão, vendas e automação inteligente.">
 
     <link rel="stylesheet" href="style.css">
-
-    <script type="module" src="script.js"></script>
 </head>
 
 <body>
@@ -26,7 +24,7 @@
                 <div class="brand-icon">T</div>
 
                 <div>
-                    <h2>TECHFLOW<span>AI</span></h2>
+                    <h2>TECHFLOW<span>IA</span></h2>
                     <small>INTELLIGENCE LAB</small>
                 </div>
             </div>
@@ -127,7 +125,7 @@
                         </button>
                     </div>
 
-                    <div class="welcome-decoration">AI</div>
+                    <div class="welcome-decoration">IA</div>
 
                 </div>
 
@@ -289,17 +287,17 @@
                 <div class="crm-board">
 
                     <div class="crm-column">
-                        <h3>Novos leads</h3>
+                        <h3>Novos leads <span class="count" id="newLeadCount">0</span></h3>
                         <div id="newLeads"></div>
                     </div>
 
                     <div class="crm-column">
-                        <h3>Em atendimento</h3>
+                        <h3>Em atendimento <span class="count" id="activeLeadCount">0</span></h3>
                         <div id="activeLeads"></div>
                     </div>
 
                     <div class="crm-column">
-                        <h3>Qualificados</h3>
+                        <h3>Qualificados <span class="count" id="qualifiedLeadCount">0</span></h3>
                         <div id="qualifiedLeads"></div>
                     </div>
 
@@ -323,6 +321,15 @@
 
                 <div class="section-heading">
                     <div>
+                        <h2>Logs de execução</h2>
+                        <p>Cada automação disparada, com permissão e resultado.</p>
+                    </div>
+                </div>
+
+                <div class="activity-list" id="automation-logs-list"></div>
+
+                <div class="section-heading">
+                    <div>
                         <h2>Histórico de atividades</h2>
                         <p>Eventos gerados durante a demonstração.</p>
                     </div>
@@ -334,13 +341,18 @@
 
 
             <footer class="footer">
-                <span>TECHFLOW AI LAB © 2026</span>
-                <span>Powered by TechFlow AI</span>
+                <span>TECHFLOW IA LAB © 2026</span>
+                <span>Powered by TechFlow</span>
             </footer>
 
         </main>
 
     </div>
+
+    <!-- Scripts: os motores globais primeiro, depois o orquestrador (módulo) -->
+    <script src="js/automation.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script type="module" src="js/script.js"></script>
 
 </body>
 </html>
