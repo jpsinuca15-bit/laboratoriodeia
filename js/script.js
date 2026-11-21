@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <button class="primary-button" data-chat-with="${emp.id}">Conversar com ${emp.name} →</button>
       </article>`;
 
-    if (dashboardEmployeesEl) dashboardEmployeesEl.innerHTML = publicEmployees.slice(0, 3).map(cardHTML).join("");
+    if (dashboardEmployeesEl) dashboardEmployeesEl.innerHTML = publicEmployees.map(cardHTML).join("");
     if (allEmployeesEl) allEmployeesEl.innerHTML = publicEmployees.map(cardHTML).join("");
     if (chatEmployeeListEl) {
       chatEmployeeListEl.innerHTML = employees.map((emp) => `
